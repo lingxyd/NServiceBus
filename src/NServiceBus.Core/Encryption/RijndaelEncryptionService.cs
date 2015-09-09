@@ -46,7 +46,7 @@ namespace NServiceBus.Encryption.Rijndael
             var expiredKeyBytes = expiredKeys.Select(key => Encoding.ASCII.GetBytes(key)).ToList();
             VerifyExpiredKeys(expiredKeyBytes);
 
-            decryptionKeys = new List<byte[]>{this.encryptionKey};
+            decryptionKeys = new List<byte[]> { this.encryptionKey };
             decryptionKeys.AddRange(expiredKeyBytes);
 
         }
@@ -142,7 +142,7 @@ namespace NServiceBus.Encryption.Rijndael
         {
             using (var rijndael = new RijndaelManaged())
             {
-                var bitLength = key.Length*8;
+                var bitLength = key.Length * 8;
                 return rijndael.ValidKeySize(bitLength);
             }
         }

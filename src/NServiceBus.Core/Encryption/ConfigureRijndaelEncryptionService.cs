@@ -50,7 +50,7 @@ namespace NServiceBus
             }
             var encryptionKeys = section.ExpiredKeys
                 .Cast<RijndaelExpiredKey>()
-                .Select(x=>x.Key)
+                .Select(x => x.Key)
                 .ToList();
             if (encryptionKeys.Any(string.IsNullOrWhiteSpace))
             {
@@ -84,7 +84,7 @@ namespace NServiceBus
             }
             else
             {
-                VerifyKeys(expiredKeys);   
+                VerifyKeys(expiredKeys);
             }
 
             RegisterEncryptionService(config, context => BuildRijndaelEncryptionService(encryptionKey, expiredKeys));
@@ -106,7 +106,7 @@ namespace NServiceBus
             }
         }
 
-        static IEncryptionService BuildRijndaelEncryptionService(string encryptionKey,List<string> expiredKeys)
+        static IEncryptionService BuildRijndaelEncryptionService(string encryptionKey, List<string> expiredKeys)
         {
             return new RijndaelEncryptionService(encryptionKey, expiredKeys);
         }
