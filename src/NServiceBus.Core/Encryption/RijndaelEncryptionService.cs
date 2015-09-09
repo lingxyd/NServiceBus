@@ -29,9 +29,7 @@ namespace NServiceBus.Encryption.Rijndael
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Linq;
     using System.Security.Cryptography;
-    using System.Text;
 
     class RijndaelEncryptionService : IEncryptionService
     {
@@ -39,11 +37,11 @@ namespace NServiceBus.Encryption.Rijndael
         byte[] encryptionKey;
         List<byte[]> decryptionKeys;
 
-        public RijndaelEncryptionService(string encryptionKey, List<string> expiredKeys)
+        public RijndaelEncryptionService(byte[] encryptionKey, List<byte[]> expiredKeys)
         {
-            this.encryptionKey = Encoding.ASCII.GetBytes(encryptionKey);
-            VerifyEncryptionKey(this.encryptionKey);
-            var expiredKeyBytes = expiredKeys.Select(key => Encoding.ASCII.GetBytes(key)).ToList();
+            this.encryptionKey = encryptionKey;
+            VerifyEncryptionKey(encryptionKey);
+            var expiredKeyBytes = expiredKeys;
             VerifyExpiredKeys(expiredKeyBytes);
 
             decryptionKeys = new List<byte[]> { this.encryptionKey };

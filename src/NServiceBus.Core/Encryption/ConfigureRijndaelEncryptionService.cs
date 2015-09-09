@@ -3,6 +3,7 @@ namespace NServiceBus
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text;
     using Config;
     using Encryption.Rijndael;
     using NServiceBus.Encryption;
@@ -107,6 +108,14 @@ namespace NServiceBus
         }
 
         static IEncryptionService BuildRijndaelEncryptionService(string encryptionKey, List<string> expiredKeys)
+        {
+            return BuildRijndaelEncryptionService(
+                Encoding.ASCII.GetBytes(encryptionKey),
+                expiredKeys.Select(x => Encoding.ASCII.GetBytes(x)).ToList()
+                );
+        }
+
+        static IEncryptionService BuildRijndaelEncryptionService(byte[] encryptionKey, List<byte[]> expiredKeys)
         {
             return new RijndaelEncryptionService(encryptionKey, expiredKeys);
         }
