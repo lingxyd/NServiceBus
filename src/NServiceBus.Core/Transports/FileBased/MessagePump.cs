@@ -2,12 +2,14 @@
 {
     using System;
     using System.Collections.Concurrent;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Logging;
+    using NServiceBus.Extensibility;
 
     class MessagePump : IPushMessages
     {
@@ -16,9 +18,11 @@
             pipeline = pipe;
 
             path = settings.InputQueue;
+            purgeOnStartup = settings.PurgeOnStartup;
         }
 
         string path;
+        bool purgeOnStartup;
 
         public void Start(PushRuntimeSettings limitations)
         {
@@ -27,6 +31,13 @@
             cancellationTokenSource = new CancellationTokenSource();
 
             cancellationToken = cancellationTokenSource.Token;
+
+            if (purgeOnStartup)
+            {
+                Directory.Delete(path, true);
+                Directory.CreateDirectory(path);
+            }
+
             messagePumpTask = Task.Factory.StartNew(() => ProcessMessages(), CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
         }
 
@@ -82,20 +93,25 @@
                 {
                     filesFound = true;
 
-                    await concurrencyLimiter.WaitAsync(cancellationToken).ConfigureAwait(false);
 
                     var messageId = Path.GetFileName(file);
-                    var transactionDir = Path.Combine(path, "tx-"+ messageId);
+                    var transactionDir = Path.Combine(path, "tx-" + messageId);
                     Directory.CreateDirectory(transactionDir);
 
-                    var fileToProcess = Path.Combine(transactionDir, Path.GetFileName(file));
+                    var fileToProcess = Path.Combine(transactionDir, Path.GetFileName(file) + ".incoming");
                     File.Move(file, fileToProcess);
 
-                    var task = Task.Run(() =>
-                    {
-                        var data = File.ReadAllText(fileToProcess);
+                    await concurrencyLimiter.WaitAsync(cancellationToken).ConfigureAwait(false);
 
-                        Console.Out.WriteLine(data);
+                    var task = Task.Run(async () =>
+                    {
+                        using (var fileStream = new FileStream(fileToProcess, FileMode.Open))
+                        {
+                            var pushContext = new PushContext(new IncomingMessage(messageId, new Dictionary<string, string>(), fileStream), new ContextBag());
+                            await pipeline(pushContext).ConfigureAwait(false);
+                        }
+
+                        Directory.Delete(transactionDir);
                     }, cancellationToken);
 
                     task.ContinueWith(t =>
@@ -112,10 +128,7 @@
                 if (!filesFound)
                 {
                     await Task.Delay(10, cancellationToken);
-                    continue;
                 }
-
-
             }
 
         }
