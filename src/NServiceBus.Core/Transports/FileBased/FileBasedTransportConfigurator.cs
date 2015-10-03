@@ -1,13 +1,7 @@
-﻿using System;
-using NServiceBus.Features;
+﻿using NServiceBus.Features;
 
 namespace NServiceBus.Transports.FileBased
 {
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Threading.Tasks;
-    using NServiceBus.Extensibility;
-
     class FileBasedTransportConfigurator : ConfigureTransport
     {
         public FileBasedTransportConfigurator()
@@ -25,39 +19,5 @@ namespace NServiceBus.Transports.FileBased
 
         protected override bool RequiresConnectionString => false;
 
-    }
-
-    class Dispatcher:IDispatchMessages
-    {
-        public Task Dispatch(IEnumerable<TransportOperation> outgoingMessages, ReadOnlyContextBag context)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    class MessagePump: IPushMessages
-    {
-        public void Init(Func<PushContext, Task> pipe, PushSettings settings)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Start(PushRuntimeSettings limitations)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task Stop()
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    class QueueCreator:ICreateQueues
-    {
-        public void CreateQueueIfNecessary(string address, string account)
-        {
-            Directory.CreateDirectory(address);
-        }
     }
 }
