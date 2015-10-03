@@ -144,6 +144,8 @@
     <Compile Include="Pipeline\Outgoing\DispatchContext.cs" />
     <Compile Include="Pipeline\Outgoing\ImmediateDispatchTerminator.cs" />
     <Compile Include="Transports\DispatchConsistency.cs" />
+    <Compile Include="Transports\FileBased\FileBasedTransport.cs" />
+    <Compile Include="Transports\FileBased\FileBasedTransportConfigurator.cs" />
     <Compile Include="Transports\IManageSubscriptionsExtensions_obsolete.cs" />
     <Compile Include="Transports\IncomingMessageExtensions.cs" />
     <Compile Include="Transports\Msmq\MsmqConnectionStringBuilder.cs" />
