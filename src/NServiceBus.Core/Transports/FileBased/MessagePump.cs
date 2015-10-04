@@ -86,32 +86,48 @@
         {
             while (!cancellationTokenSource.IsCancellationRequested)
             {
-
                 var filesFound = false;
 
-                foreach (var file in Directory.EnumerateFiles(path, "*.*"))
+                foreach (var file in Directory.EnumerateFiles(path, "*.msg"))
                 {
                     filesFound = true;
 
 
-                    var messageId = Path.GetFileName(file);
+                    var messageId = Path.GetFileNameWithoutExtension(file);
                     var transactionDir = Path.Combine(path, "tx-" + messageId);
                     Directory.CreateDirectory(transactionDir);
 
-                    var fileToProcess = Path.Combine(transactionDir, Path.GetFileName(file) + ".incoming");
+                    var fileToProcess = Path.Combine(transactionDir, messageId + ".incoming");
                     File.Move(file, fileToProcess);
 
                     await concurrencyLimiter.WaitAsync(cancellationToken).ConfigureAwait(false);
 
                     var task = Task.Run(async () =>
                     {
-                        using (var fileStream = new FileStream(fileToProcess, FileMode.Open))
+                        try
                         {
-                            var pushContext = new PushContext(new IncomingMessage(messageId, new Dictionary<string, string>(), fileStream), new ContextBag());
-                            await pipeline(pushContext).ConfigureAwait(false);
+                            var message = File.ReadAllLines(fileToProcess);
+                            var bodyPath = message.First();
+                            var headers = DeserializeHeaders(message.Skip(1).ToArray());
+
+                            using (var bodyStream = new FileStream(bodyPath, FileMode.Open))
+                            {
+                                var pushContext = new PushContext(new IncomingMessage(messageId, headers, bodyStream), new ContextBag());
+                                await pipeline(pushContext).ConfigureAwait(false);
+                            }
+
+                            //todo: commit by moving outgoing messages to their destinations and remove the body file
+                        }
+                        catch (Exception)
+                        {
+                            //rollback by moving the file back to the main dir
+                            File.Move(fileToProcess, file);
+                        }
+                        finally
+                        {
+                            Directory.Delete(transactionDir, true);
                         }
 
-                        Directory.Delete(transactionDir);
                     }, cancellationToken);
 
                     task.ContinueWith(t =>
@@ -131,6 +147,18 @@
                 }
             }
 
+        }
+
+        Dictionary<string, string> DeserializeHeaders(string[] headerLines)
+        {
+            var headers = new Dictionary<string, string>();
+            for (var i = 0; i < headerLines.Count() / 2; i++)
+            {
+                var index = i * 2;
+                headers.Add(headerLines[index], headerLines[index + 1]);
+
+            }
+            return headers;
         }
 
 

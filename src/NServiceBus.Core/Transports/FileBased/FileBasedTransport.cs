@@ -7,7 +7,7 @@ namespace NServiceBus.Transports.FileBased
     using System.IO;
 
     /// <summary>
-    /// 
+    /// A file based transport.
     /// </summary>
     public class FileBasedTransport : TransportDefinition
     {

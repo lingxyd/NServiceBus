@@ -3,9 +3,10 @@ namespace NServiceBus.Transports.FileBased
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Threading.Tasks;
     using Extensibility;
-    using NServiceBus.Routing;
+    using Routing;
 
     class Dispatcher:IDispatchMessages
     {
@@ -20,9 +21,17 @@ namespace NServiceBus.Transports.FileBased
                     throw new InvalidOperationException("The filebased transport does not support native pub sub");
                 }
 
-                var path = Path.Combine(routing.Destination, transportOperation.Message.MessageId); 
-                File.WriteAllBytes(path,transportOperation.Message.Body);
+                var basePath = Path.Combine(routing.Destination, transportOperation.Message.MessageId);
+                var bodyPath = basePath + ".txt"; //TODO: pick the correct ending based on the serialized type
+                File.WriteAllBytes(bodyPath,transportOperation.Message.Body);
 
+                var messagePath = basePath + ".msg";
+                var messageContents = new List<string>();
+
+                messageContents.Add(bodyPath);
+                messageContents.AddRange(transportOperation.Message.Headers.SelectMany(kvp=>new[] {kvp.Key,kvp.Value}));
+                
+                File.WriteAllLines(messagePath,messageContents);
             }
 
             return TaskEx.Completed;
