@@ -2,15 +2,22 @@
 using System.Collections.Generic;
 using NServiceBus.ConsistencyGuarantees;
 
-namespace NServiceBus.Transports.FileBased
+namespace NServiceBus
 {
     using System.IO;
+    using NServiceBus.Transports;
+    using NServiceBus.Transports.FileBased;
 
     /// <summary>
     /// A file based transport.
     /// </summary>
     public class FileBasedTransport : TransportDefinition
     {
+        internal FileBasedTransport()
+        {
+            HasSupportForMultiQueueNativeTransactions = true;
+        }
+
         /// <summary>
         /// Gives implementations access to the <see cref="BusConfiguration"/> instance at configuration time.
         /// </summary>

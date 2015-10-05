@@ -22,13 +22,16 @@ namespace NServiceBus.Transports.FileBased
                 }
 
                 var basePath = Path.Combine(routing.Destination, transportOperation.Message.MessageId);
-                var bodyPath = basePath + ".txt"; //TODO: pick the correct ending based on the serialized type
+                var bodyPath = basePath + ".xml"; //TODO: pick the correct ending based on the serialized type
                 File.WriteAllBytes(bodyPath,transportOperation.Message.Body);
 
-                var messagePath = basePath + ".msg";
-                var messageContents = new List<string>();
+                var messagePath = basePath + ".txt";
+                var messageContents = new List<string>
+                {
+                    bodyPath
+                };
 
-                messageContents.Add(bodyPath);
+                //todo: handle new lines in headers
                 messageContents.AddRange(transportOperation.Message.Headers.SelectMany(kvp=>new[] {kvp.Key,kvp.Value}));
                 
                 File.WriteAllLines(messagePath,messageContents);

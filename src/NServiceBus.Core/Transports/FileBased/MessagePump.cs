@@ -88,17 +88,17 @@
             {
                 var filesFound = false;
 
-                foreach (var file in Directory.EnumerateFiles(path, "*.msg"))
+                foreach (var filePath in Directory.EnumerateFiles(path, "*.txt"))
                 {
                     filesFound = true;
-
-
-                    var messageId = Path.GetFileNameWithoutExtension(file);
-                    var transactionDir = Path.Combine(path, "tx-" + messageId);
+                    
+                    var messageId = Path.GetFileNameWithoutExtension(filePath);
+                    var transactionId = Guid.NewGuid().ToString();
+                    var transactionDir = Path.Combine(path, "tx-" + transactionId);
                     Directory.CreateDirectory(transactionDir);
 
-                    var fileToProcess = Path.Combine(transactionDir, messageId + ".incoming");
-                    File.Move(file, fileToProcess);
+                    var fileToProcess = Path.Combine(transactionDir, Path.GetFileName(filePath));
+                    File.Move(filePath, fileToProcess);
 
                     await concurrencyLimiter.WaitAsync(cancellationToken).ConfigureAwait(false);
 
@@ -115,18 +115,23 @@
                                 var pushContext = new PushContext(new IncomingMessage(messageId, headers, bodyStream), new ContextBag());
                                 await pipeline(pushContext).ConfigureAwait(false);
                             }
+                            //at this stage we should commit!
+                            var commitDir = Path.Combine(path, ".committed", transactionId);
 
-                            //todo: commit by moving outgoing messages to their destinations and remove the body file
+                            Directory.Move(transactionDir, commitDir);
                         }
                         catch (Exception)
                         {
                             //rollback by moving the file back to the main dir
-                            File.Move(fileToProcess, file);
-                        }
-                        finally
-                        {
+                            File.Move(fileToProcess, filePath);
                             Directory.Delete(transactionDir, true);
                         }
+       
+                    
+                        //todo: commit by moving outgoing messages to their destinations and remove the body file
+
+                        //File.Delete(bodyPath);
+
 
                     }, cancellationToken);
 
