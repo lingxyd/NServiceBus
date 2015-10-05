@@ -323,6 +323,15 @@ namespace NServiceBus
         public FileRoutingTableSettings(NServiceBus.Settings.SettingsHolder settings) { }
         public void LookForFilesIn(string path) { }
     }
+    public class FileBasedTransport : NServiceBus.Transports.TransportDefinition
+    {
+        protected internal override void Configure(NServiceBus.BusConfiguration config) { }
+        public override NServiceBus.ConsistencyGuarantees.ConsistencyGuarantee GetDefaultConsistencyGuarantee() { }
+        public override string GetDiscriminatorForThisEndpointInstance() { }
+        public override NServiceBus.Transports.IManageSubscriptions GetSubscriptionManager() { }
+        public override System.Collections.Generic.IEnumerable<System.Type> GetSupportedDeliveryConstraints() { }
+        public override string ToTransportAddress(NServiceBus.LogicalAddress logicalAddress) { }
+    }
     public class FileShareDataBus : NServiceBus.DataBus.DataBusDefinition
     {
         public FileShareDataBus() { }
@@ -2681,19 +2690,6 @@ namespace NServiceBus.Transports
         public TransportOperation(NServiceBus.Transports.OutgoingMessage message, NServiceBus.Transports.DispatchOptions dispatchOptions) { }
         public NServiceBus.Transports.DispatchOptions DispatchOptions { get; }
         public NServiceBus.Transports.OutgoingMessage Message { get; }
-    }
-}
-namespace NServiceBus.Transports.FileBased
-{
-    public class FileBasedTransport : NServiceBus.Transports.TransportDefinition
-    {
-        public FileBasedTransport() { }
-        protected internal override void Configure(NServiceBus.BusConfiguration config) { }
-        public override NServiceBus.ConsistencyGuarantees.ConsistencyGuarantee GetDefaultConsistencyGuarantee() { }
-        public override string GetDiscriminatorForThisEndpointInstance() { }
-        public override NServiceBus.Transports.IManageSubscriptions GetSubscriptionManager() { }
-        public override System.Collections.Generic.IEnumerable<System.Type> GetSupportedDeliveryConstraints() { }
-        public override string ToTransportAddress(NServiceBus.LogicalAddress logicalAddress) { }
     }
 }
 namespace NServiceBus.Transports.Msmq.Config

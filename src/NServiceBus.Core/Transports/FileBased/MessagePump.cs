@@ -9,20 +9,17 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Logging;
-    using NServiceBus.Extensibility;
+    using Extensibility;
 
     class MessagePump : IPushMessages
     {
         public void Init(Func<PushContext, Task> pipe, PushSettings settings)
         {
             pipeline = pipe;
-
             path = settings.InputQueue;
             purgeOnStartup = settings.PurgeOnStartup;
         }
 
-        string path;
-        bool purgeOnStartup;
 
         public void Start(PushRuntimeSettings limitations)
         {
@@ -91,14 +88,12 @@
                 foreach (var filePath in Directory.EnumerateFiles(path, "*.txt"))
                 {
                     filesFound = true;
-                    
-                    var messageId = Path.GetFileNameWithoutExtension(filePath);
-                    var transactionId = Guid.NewGuid().ToString();
-                    var transactionDir = Path.Combine(path, "tx-" + transactionId);
-                    Directory.CreateDirectory(transactionDir);
 
-                    var fileToProcess = Path.Combine(transactionDir, Path.GetFileName(filePath));
-                    File.Move(filePath, fileToProcess);
+                    var messageId = Path.GetFileNameWithoutExtension(filePath);
+
+                    var transaction = new DirectoryBasedTransaction(path);
+
+                    transaction.BeginTransaction(filePath);
 
                     await concurrencyLimiter.WaitAsync(cancellationToken).ConfigureAwait(false);
 
@@ -106,33 +101,27 @@
                     {
                         try
                         {
-                            var message = File.ReadAllLines(fileToProcess);
+                            var message = File.ReadAllLines(transaction.FileToProcess);
                             var bodyPath = message.First();
                             var headers = DeserializeHeaders(message.Skip(1).ToArray());
 
                             using (var bodyStream = new FileStream(bodyPath, FileMode.Open))
                             {
-                                var pushContext = new PushContext(new IncomingMessage(messageId, headers, bodyStream), new ContextBag());
+                                var context = new ContextBag();
+                                context.Set(transaction);
+
+                                var pushContext = new PushContext(new IncomingMessage(messageId, headers, bodyStream), context);
                                 await pipeline(pushContext).ConfigureAwait(false);
                             }
-                            //at this stage we should commit!
-                            var commitDir = Path.Combine(path, ".committed", transactionId);
 
-                            Directory.Move(transactionDir, commitDir);
+                            transaction.Commit();
                         }
                         catch (Exception)
                         {
-                            //rollback by moving the file back to the main dir
-                            File.Move(fileToProcess, filePath);
-                            Directory.Delete(transactionDir, true);
+                            transaction.Rollback();
                         }
-       
-                    
-                        //todo: commit by moving outgoing messages to their destinations and remove the body file
 
-                        //File.Delete(bodyPath);
-
-
+                        transaction.Dipatch();
                     }, cancellationToken);
 
                     task.ContinueWith(t =>
@@ -166,6 +155,8 @@
             return headers;
         }
 
+        string path;
+        bool purgeOnStartup;
 
         Task messagePumpTask;
         ConcurrentDictionary<Task, Task> runningReceiveTasks;

@@ -21,20 +21,33 @@ namespace NServiceBus.Transports.FileBased
                     throw new InvalidOperationException("The filebased transport does not support native pub sub");
                 }
 
-                var basePath = Path.Combine(routing.Destination, transportOperation.Message.MessageId);
+                var basePath = Path.Combine("c:\\bus", routing.Destination, transportOperation.Message.MessageId);
                 var bodyPath = basePath + ".xml"; //TODO: pick the correct ending based on the serialized type
                 File.WriteAllBytes(bodyPath,transportOperation.Message.Body);
 
-                var messagePath = basePath + ".txt";
                 var messageContents = new List<string>
                 {
                     bodyPath
                 };
 
                 //todo: handle new lines in headers
-                messageContents.AddRange(transportOperation.Message.Headers.SelectMany(kvp=>new[] {kvp.Key,kvp.Value}));
-                
-                File.WriteAllLines(messagePath,messageContents);
+                messageContents.AddRange(transportOperation.Message.Headers.SelectMany(kvp => new[] { kvp.Key, kvp.Value }));
+
+                DirectoryBasedTransaction transaction;
+
+                var messagePath = basePath + ".txt";
+
+                if (context.TryGet(out transaction))
+                {
+                    //store the original destination
+                    messageContents.Add(messagePath);
+                    
+                    transaction.Enlist(messagePath,messageContents);
+                 }
+                else
+                {
+                    File.WriteAllLines(messagePath, messageContents);
+                }
             }
 
             return TaskEx.Completed;

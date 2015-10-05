@@ -144,6 +144,7 @@
     <Compile Include="Pipeline\Outgoing\DispatchContext.cs" />
     <Compile Include="Pipeline\Outgoing\ImmediateDispatchTerminator.cs" />
     <Compile Include="Transports\DispatchConsistency.cs" />
+    <Compile Include="Transports\FileBased\DirectoryBasedTransaction.cs" />
     <Compile Include="Transports\FileBased\Dispatcher.cs" />
     <Compile Include="Transports\FileBased\FileBasedTransport.cs" />
     <Compile Include="Transports\FileBased\FileBasedTransportConfigurator.cs" />
