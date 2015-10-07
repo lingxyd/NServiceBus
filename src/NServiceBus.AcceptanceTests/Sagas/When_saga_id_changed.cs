@@ -80,7 +80,7 @@
 
                 public BusNotifications BusNotifications { get; set; }
 
-                public Task StartAsync()
+                public Task StartAsync(ISendOnlyBus bus)
                 {
                     BusNotifications.Errors.MessageSentToErrorQueue.Subscribe(e =>
                     {

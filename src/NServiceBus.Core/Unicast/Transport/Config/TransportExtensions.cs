@@ -122,11 +122,20 @@ namespace NServiceBus
         /// <summary>
         /// Gets the transport connectionstring.
         /// </summary>
+        [ObsoleteEx(TreatAsErrorFromVersion = "6", RemoveInVersion = "7", ReplacementTypeOrMember = "TransportConnectionString")]
         public static string TransportConnectionString(this Configure config)
         {
-            Guard.AgainstNull("config", config);
+           throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Gets the transport connectionstring.
+        /// </summary>
+        public static string TransportConnectionString(this ReadOnlySettings settings)
+        {
+            Guard.AgainstNull(nameof(settings), settings);
             TransportConnectionString conn;
-            if (config.Settings.TryGet(out conn))
+            if (settings.TryGet(out conn))
             {
                 return conn.GetConnectionStringOrNull();
             }

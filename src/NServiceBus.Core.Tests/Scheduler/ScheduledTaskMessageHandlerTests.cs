@@ -15,8 +15,8 @@
         [SetUp]
         public void SetUp()
         {
-            scheduler = new DefaultScheduler(bus);
-            handler = new ScheduledTaskMessageHandler(scheduler);
+            scheduler = new DefaultScheduler();
+            handler = new ScheduledTaskMessageHandler(scheduler, bus);
 
             var task = new TaskDefinition
             {

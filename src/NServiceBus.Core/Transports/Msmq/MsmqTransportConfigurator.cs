@@ -9,7 +9,6 @@
     using System.Transactions;
     using NServiceBus.ConsistencyGuarantees;
     using NServiceBus.Logging;
-    using NServiceBus.ObjectBuilder;
     using NServiceBus.Settings;
     using NServiceBus.Transports;
     using NServiceBus.Transports.Msmq;
@@ -30,16 +29,15 @@
 
         class CheckQueuePermissions : FeatureStartupTask
         {
-            IBuilder builder;
+            ReadOnlySettings settings;
 
-            public CheckQueuePermissions(IBuilder builder)
+            public CheckQueuePermissions(ReadOnlySettings settings)
             {
-                this.builder = builder;
+                this.settings = settings;
             }
 
-            protected override void OnStart()
+            protected override void OnStart(ISendOnlyBus sendOnlyBus)
             {
-                var settings = builder.Build<ReadOnlySettings>();
                 var queueBindings = settings.Get<QueueBindings>();
                 var boundQueueAddresses = queueBindings.ReceivingAddresses.Concat(queueBindings.SendingAddresses);
 

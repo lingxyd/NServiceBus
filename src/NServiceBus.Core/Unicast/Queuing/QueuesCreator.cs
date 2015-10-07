@@ -3,30 +3,33 @@ namespace NServiceBus.Unicast.Queuing
     using System.Threading.Tasks;
     using Installation;
     using Logging;
+    using NServiceBus.Settings;
     using Transports;
 
-    class QueuesCreator : INeedToInstallSomething
+    class QueuesCreator : IInstall
     {
         readonly ICreateQueues queueCreator;
+        readonly ReadOnlySettings settings;
 
-        public QueuesCreator(ICreateQueues queueCreator)
+        public QueuesCreator(ICreateQueues queueCreator, ReadOnlySettings settings)
         {
             this.queueCreator = queueCreator;
+            this.settings = settings;
         }
 
-        public Task InstallAsync(string identity, Configure config)
+        public Task InstallAsync(string identity)
         {
-            if (config.Settings.Get<bool>("Endpoint.SendOnly"))
+            if (settings.Get<bool>("Endpoint.SendOnly"))
             {
                 return TaskEx.Completed;
             }
 
-            if (!config.CreateQueues())
+            if (!settings.CreateQueues())
             {
                 return TaskEx.Completed;
             }
 
-            var queueBindings = config.Settings.Get<QueueBindings>();
+            var queueBindings = settings.Get<QueueBindings>();
 
             foreach (var receiveLogicalAddress in queueBindings.ReceivingAddresses)
             {

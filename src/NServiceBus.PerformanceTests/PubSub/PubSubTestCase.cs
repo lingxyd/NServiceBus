@@ -66,26 +66,26 @@ public class PubSubTestCase : TestCase
                 break;
         }
 
-
-        using (var bus = Bus.Create(configuration))
+        configuration.RunWhenEndpointStartsAndStops(new StartActionRunner(b =>
         {
             Parallel.For(
-          0,
-          NumberMessages,
-          new ParallelOptions { MaxDegreeOfParallelism = NumberOfThreads },
-          x => bus.SendLocalAsync(new PerformPublish()).GetAwaiter().GetResult());
+                0,
+                NumberMessages,
+                new ParallelOptions
+                {
+                    MaxDegreeOfParallelism = NumberOfThreads
+                },
+                x => b.SendLocalAsync(new PerformPublish()).GetAwaiter().GetResult());
+        }));
 
-
-            Statistics.StartTime = DateTime.Now;
-            bus.StartAsync().GetAwaiter().GetResult();
-
-            while (Interlocked.Read(ref Statistics.NumberOfMessages) < NumberMessages)
-                Thread.Sleep(1000);
-
-
-            Statistics.Dump();
+        Statistics.StartTime = DateTime.Now;
+        var endpoint = Endpoint.CreateAndStartAsync(configuration).GetAwaiter().GetResult();
+        while (Interlocked.Read(ref Statistics.NumberOfMessages) < NumberMessages)
+        {
+            Thread.Sleep(1000);
         }
-
+        Statistics.Dump();
+        endpoint.StopAsync().GetAwaiter().GetResult();
     }
 }
 
@@ -102,7 +102,7 @@ public class PrimeSubscriptionStorage : Feature
 
     class PrimeSubscriptionStorageTask : FeatureStartupTask
     {
-        protected override void OnStart()
+        protected override void OnStart(ISendOnlyBus sendOnlyBus)
         {
             PrimeSubscriptionStorage(SubscriptionStorage);
         }

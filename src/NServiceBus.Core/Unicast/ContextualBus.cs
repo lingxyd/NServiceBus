@@ -49,7 +49,7 @@ namespace NServiceBus.Unicast
         }
 
         /// <summary>
-        /// <see cref="IBus.SubscribeAsync"/>
+        /// <see cref="ISendOnlyBus.SubscribeAsync"/>
         /// </summary>
         public Task SubscribeAsync(Type eventType, SubscribeOptions options)
         {
@@ -64,7 +64,7 @@ namespace NServiceBus.Unicast
         }
 
         /// <summary>
-        /// <see cref="IBus.UnsubscribeAsync"/>
+        /// <see cref="ISendOnlyBus.UnsubscribeAsync"/>
         /// </summary>
         public Task UnsubscribeAsync(Type eventType, UnsubscribeOptions options)
         {

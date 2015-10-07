@@ -131,7 +131,7 @@
                 this.builder = builder;
             }
 
-            protected override void OnStart()
+            protected override void OnStart(ISendOnlyBus sendOnlyBus)
             {
                 var transportDefinition = settings.Get<TransportDefinition>();
                 if (transportDefinition.GetOutboundRoutingPolicy(settings).Publishes == OutboundRoutingType.DirectSend) //Publish via send

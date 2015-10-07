@@ -7,6 +7,7 @@
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTests.EndpointTemplates;
     using NServiceBus.AcceptanceTests.ScenarioDescriptors;
+    using NServiceBus.Settings;
     using NUnit.Framework;
 
     public class When_setting_msmq_label_generator : NServiceBusAcceptanceTest
@@ -65,9 +66,11 @@
         }
 
 
-        public class EndPoint : EndpointConfigurationBuilder, IWantToRunBeforeConfigurationIsFinalized
+        public class EndPoint : EndpointConfigurationBuilder, IFinalizeConfiguration
         {
             static bool initialized;
+            bool generatorWasCalled;
+
             public EndPoint()
             {
                 if (initialized)
@@ -82,18 +85,34 @@
                 });
             }
 
-            static Context Context { get; set; }
+            public class StartHandler : IWantToRunWhenBusStartsAndStops
+            {
+                public Context Context { get; set; }
+                public ReadOnlySettings Settings { get; set; }
 
+                public Task StartAsync(ISendOnlyBus bus)
+                {
+                    Context.GeneratorWasCalled = Settings.Get<bool>("GeneratorWasCalled");
+                    return Task.FromResult(0);
+                }
+
+                public Task StopAsync()
+                {
+                    return Task.FromResult(0);
+                }
+            }
+
+            static Context Context { get; set; }
 
             string GetMessageLabel(IReadOnlyDictionary<string, string> headers)
             {
-                Context.GeneratorWasCalled = true;
+                generatorWasCalled = true;
                 return "MyLabel";
             }
 
-            public void Run(Configure config)
+            public void Run(SettingsHolder config)
             {
-                Context = config.Builder.Build<Context>();
+                config.Set("GeneratorWasCalled", generatorWasCalled);
             }
         }
 

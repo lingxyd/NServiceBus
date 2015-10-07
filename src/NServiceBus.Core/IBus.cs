@@ -24,22 +24,6 @@ namespace NServiceBus
         Task ReplyAsync<T>(Action<T> messageConstructor, ReplyOptions options);
 
         /// <summary>
-        /// Subscribes to receive published messages of the specified type.
-        /// This method is only necessary if you turned off auto-subscribe.
-        /// </summary>
-        /// <param name="eventType">The type of event to subscribe to.</param>
-        /// <param name="options">Options for the subscribe.</param>
-        Task SubscribeAsync(Type eventType, SubscribeOptions options);
-
-        /// <summary>
-        /// Subscribes to receive published messages of the specified type.
-        /// This method is only necessary if you turned off auto-subscribe.
-        /// </summary>
-        /// <param name="eventType">The type of event to unsubscribe from.</param>
-        /// <param name="options">Options for the unsubscribe operation.</param>
-        Task UnsubscribeAsync(Type eventType, UnsubscribeOptions options);
-
-        /// <summary>
         /// Moves the message being handled to the back of the list of available 
         /// messages so it can be handled later.
         /// </summary>

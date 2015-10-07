@@ -214,7 +214,6 @@
     <Compile Include="DataBus\When_applying_the_databus_message_mutator_to_incoming_messages.cs" />
     <Compile Include="DataBus\When_applying_the_databus_message_mutator_to_null_properties.cs" />
     <Compile Include="DataBus\When_applying_the_databus_message_mutator_to_outgoing_messages.cs" />
-    <Compile Include="DataBus\When_nservicebus_is_initalizing.cs" />
     <Compile Include="Encryption\ConventionBasedEncryptedStringSpecs.cs" />
     <Compile Include="Encryption\FakeEncryptionService.cs" />
     <Compile Include="Encryption\Issue_701.cs" />
