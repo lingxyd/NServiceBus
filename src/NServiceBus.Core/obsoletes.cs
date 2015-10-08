@@ -1740,3 +1740,69 @@ namespace NServiceBus.Unicast.Transport
         }
     }
 }
+#pragma warning disable 0067
+namespace NServiceBus.Unicast.Transport
+{
+    using System;
+    using Faults;
+    using Settings;
+    using Transports;
+
+    [ObsoleteEx(TreatAsErrorFromVersion = "6", RemoveInVersion = "7", Message = "No longer used, can safey be removed")]
+    public class TransportReceiver : ITransport, IDisposable
+    {
+        public TransportReceiver(TransactionSettings transactionSettings, int maximumConcurrencyLevel, int maximumThroughput, IDequeueMessages receiver, IManageMessageFailures manageMessageFailures, ReadOnlySettings settings, Configure config, TransactionSettings transactionSettings1)
+        {
+            TransactionSettings = transactionSettings1;
+            throw new NotImplementedException();
+        }
+
+        public IDequeueMessages Receiver { get; set; }
+
+
+        public IManageMessageFailures FailureManager { get; set; }
+
+
+        public void Dispose()
+        {
+        }
+
+
+        public event EventHandler<StartedMessageProcessingEventArgs> StartedMessageProcessing;
+
+        public event EventHandler<FinishedMessageProcessingEventArgs> FinishedMessageProcessing;
+
+        public event EventHandler<FailedMessageProcessingEventArgs> FailedMessageProcessing;
+
+        public virtual int MaximumConcurrencyLevel { get; private set; }
+
+        public void ChangeMaximumConcurrencyLevel(int maximumConcurrencyLevel)
+        {
+        }
+        public int MaximumMessageThroughputPerSecond { get; private set; }
+
+        public void ChangeMaximumMessageThroughputPerSecond(int maximumMessageThroughputPerSecond)
+        {
+
+        }
+
+        public event EventHandler<TransportMessageReceivedEventArgs> TransportMessageReceived;
+
+
+        public void Start(Address address)
+        {
+
+        }
+
+        public void AbortHandlingCurrentMessage()
+        {
+        }
+
+        public void Stop()
+        {
+        }
+        public TransactionSettings TransactionSettings { get; private set; }
+    }
+}
+
+#pragma warning restore 0067

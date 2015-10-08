@@ -4,9 +4,9 @@ namespace NServiceBus
     using System.Collections.Generic;
     using System.Messaging;
     using System.Threading.Tasks;
-    using NServiceBus.Extensibility;
-    using NServiceBus.Logging;
-    using NServiceBus.Transports;
+    using Extensibility;
+    using Logging;
+    using Transports;
 
     class ReceiveWithNativeTransaction : ReceiveStrategy
     {
@@ -19,6 +19,11 @@ namespace NServiceBus
                     msmqTransaction.Begin();
 
                     var message = inputQueue.Receive(TimeSpan.FromMilliseconds(10), msmqTransaction);
+
+                    if (message == null)
+                    {
+                        return;
+                    }
 
                     Dictionary<string, string> headers;
 
@@ -39,12 +44,13 @@ namespace NServiceBus
 
                     using (var bodyStream = message.BodyStream)
                     {
-                        var incomingMessage = new IncomingMessage(message.Id, headers, bodyStream);
                         var context = new ContextBag();
 
                         context.Set(msmqTransaction);
 
-                        await onMessage(new PushContext(incomingMessage, context)).ConfigureAwait(false);
+                        var pushContext = new PushContext(message.Id, headers, bodyStream, context);
+
+                        await onMessage(pushContext).ConfigureAwait(false);
                     }
 
                     msmqTransaction.Commit();
