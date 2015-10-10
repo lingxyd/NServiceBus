@@ -5,9 +5,9 @@ using NServiceBus.ConsistencyGuarantees;
 namespace NServiceBus
 {
     using System.IO;
-    using NServiceBus.Settings;
-    using NServiceBus.Transports;
-    using NServiceBus.Transports.FileBased;
+    using Settings;
+    using Transports;
+    using Transports.FileBased;
 
     /// <summary>
     /// A file based transport.
@@ -17,6 +17,7 @@ namespace NServiceBus
         internal FileBasedTransport()
         {
             HasSupportForMultiQueueNativeTransactions = true;
+            HasSupportForDistributedTransactions = false;
         }
 
         /// <summary>
