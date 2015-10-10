@@ -6,7 +6,7 @@ namespace NServiceBus.Transports.FileBased
     using System.Linq;
     using System.Threading.Tasks;
     using Extensibility;
-    using Routing;
+    using NServiceBus.Routing;
 
     class Dispatcher:IDispatchMessages
     {
@@ -14,14 +14,14 @@ namespace NServiceBus.Transports.FileBased
         {
             foreach (var transportOperation in outgoingMessages)
             {
-                var routing = transportOperation.DispatchOptions.RoutingStrategy as DirectToTargetDestination;
+                var addressTag = transportOperation.DispatchOptions.AddressTag as UnicastAddressTag;
 
-                if (routing == null)
+                if (addressTag == null)
                 {
-                    throw new InvalidOperationException("The filebased transport does not support native pub sub");
+                    throw new InvalidOperationException("The filebased transport only support unicast addressing");
                 }
 
-                var basePath = Path.Combine("c:\\bus", routing.Destination, transportOperation.Message.MessageId);
+                var basePath = Path.Combine("c:\\bus", addressTag.Destination, transportOperation.Message.MessageId);
                 var bodyPath = basePath + ".xml"; //TODO: pick the correct ending based on the serialized type
                 File.WriteAllBytes(bodyPath,transportOperation.Message.Body);
 

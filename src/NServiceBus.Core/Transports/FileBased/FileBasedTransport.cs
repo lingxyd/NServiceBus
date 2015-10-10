@@ -5,6 +5,7 @@ using NServiceBus.ConsistencyGuarantees;
 namespace NServiceBus
 {
     using System.IO;
+    using NServiceBus.Settings;
     using NServiceBus.Transports;
     using NServiceBus.Transports.FileBased;
 
@@ -67,6 +68,14 @@ namespace NServiceBus
         public override string ToTransportAddress(LogicalAddress logicalAddress)
         {
             return Path.Combine("c:\\bus", logicalAddress.EndpointInstanceName.EndpointName.ToString());
+        }
+
+        /// <summary>
+        /// Returns the outbound routing policy selected for the transport.
+        /// </summary>
+        public override OutboundRoutingPolicy GetOutboundRoutingPolicy(ReadOnlySettings settings)
+        {
+            return new OutboundRoutingPolicy(OutboundRoutingType.DirectSend, OutboundRoutingType.DirectSend, OutboundRoutingType.DirectSend);
         }
     }
 }
