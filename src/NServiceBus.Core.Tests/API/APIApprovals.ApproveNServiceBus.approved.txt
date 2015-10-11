@@ -318,19 +318,20 @@ namespace NServiceBus
     {
         public static NServiceBus.FileRoutingTableSettings UseFileBasedEndpointInstanceLists(this NServiceBus.RoutingSettings config) { }
     }
-    public class FileRoutingTableSettings : NServiceBus.Configuration.AdvanceExtensibility.ExposeSettings
-    {
-        public FileRoutingTableSettings(NServiceBus.Settings.SettingsHolder settings) { }
-        public void LookForFilesIn(string path) { }
-    }
     public class FileBasedTransport : NServiceBus.Transports.TransportDefinition
     {
         protected internal override void Configure(NServiceBus.BusConfiguration config) { }
         public override NServiceBus.ConsistencyGuarantees.ConsistencyGuarantee GetDefaultConsistencyGuarantee() { }
         public override string GetDiscriminatorForThisEndpointInstance() { }
+        public override NServiceBus.Transports.OutboundRoutingPolicy GetOutboundRoutingPolicy(NServiceBus.Settings.ReadOnlySettings settings) { }
         public override NServiceBus.Transports.IManageSubscriptions GetSubscriptionManager() { }
         public override System.Collections.Generic.IEnumerable<System.Type> GetSupportedDeliveryConstraints() { }
         public override string ToTransportAddress(NServiceBus.LogicalAddress logicalAddress) { }
+    }
+    public class FileRoutingTableSettings : NServiceBus.Configuration.AdvanceExtensibility.ExposeSettings
+    {
+        public FileRoutingTableSettings(NServiceBus.Settings.SettingsHolder settings) { }
+        public void LookForFilesIn(string path) { }
     }
     public class FileShareDataBus : NServiceBus.DataBus.DataBusDefinition
     {
