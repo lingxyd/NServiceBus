@@ -16,7 +16,7 @@
         public void Init(Func<PushContext, Task> pipe, PushSettings settings)
         {
             pipeline = pipe;
-            path = settings.InputQueue;
+            path = Path.Combine("c:\\bus", settings.InputQueue);
             purgeOnStartup = settings.PurgeOnStartup;
         }
 
@@ -101,27 +101,14 @@
                     {
                         try
                         {
-                            var message = File.ReadAllLines(transaction.FileToProcess);
-                            var bodyPath = message.First();
-                            var headers = DeserializeHeaders(message.Skip(1).ToArray());
+                            await ProcessFile(transaction, messageId);
 
-                            using (var bodyStream = new FileStream(bodyPath, FileMode.Open))
-                            {
-                                var context = new ContextBag();
-                                context.Set(transaction);
-
-                                var pushContext = new PushContext(new IncomingMessage(messageId, headers, bodyStream), context);
-                                await pipeline(pushContext).ConfigureAwait(false);
-                            }
-
-                            transaction.Commit();
+                            transaction.Dipatch();
                         }
-                        catch (Exception)
+                        finally
                         {
-                            transaction.Rollback();
+                            concurrencyLimiter.Release();
                         }
-
-                        transaction.Dipatch();
                     }, cancellationToken);
 
                     task.ContinueWith(t =>
@@ -141,6 +128,31 @@
                 }
             }
 
+        }
+
+        async Task ProcessFile(DirectoryBasedTransaction transaction, string messageId)
+        {
+            try
+            {
+                var message = File.ReadAllLines(transaction.FileToProcess);
+                var bodyPath = message.First();
+                var headers = DeserializeHeaders(message.Skip(1).ToArray());
+
+                using (var bodyStream = new FileStream(bodyPath, FileMode.Open))
+                {
+                    var context = new ContextBag();
+                    context.Set(transaction);
+
+                    var pushContext = new PushContext(new IncomingMessage(messageId, headers, bodyStream), context);
+                    await pipeline(pushContext).ConfigureAwait(false);
+                }
+
+                transaction.Commit();
+            }
+            catch (Exception)
+            {
+                transaction.Rollback();
+            }
         }
 
         Dictionary<string, string> DeserializeHeaders(string[] headerLines)

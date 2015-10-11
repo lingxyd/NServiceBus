@@ -2,9 +2,8 @@
 {
     using System;
     using System.Threading.Tasks;
-    using NServiceBus.AcceptanceTesting;
-    using NServiceBus.AcceptanceTests.EndpointTemplates;
-    using NServiceBus.AcceptanceTests.ScenarioDescriptors;
+    using AcceptanceTesting;
+    using EndpointTemplates;
     using NUnit.Framework;
 
     public class When_doing_flr_with_default_settings : NServiceBusAcceptanceTest
@@ -12,18 +11,24 @@
         [Test]
         public async Task Should_not_do_any_retries_if_transactions_are_off()
         {
-            await Scenario.Define<Context>(c => { c.Id = Guid.NewGuid(); })
-                    .WithEndpoint<RetryEndpoint>(b => b.When(async (bus, context) =>
+            var context = await Scenario.Define<Context>(c => { c.Id = Guid.NewGuid(); })
+                .WithEndpoint<RetryEndpoint>(b => b.When(async (bus, c) =>
+                {
+                    await bus.SendLocalAsync(new MessageToBeRetried
                     {
-                        await bus.SendLocalAsync(new MessageToBeRetried { Id = context.Id });
-                        await bus.SendLocalAsync(new MessageToBeRetried { Id = context.Id, SecondMessage = true });
-                    }))
-                    .AllowSimulatedExceptions()
-                    .Done(c => c.SecondMessageReceived || c.NumberOfTimesInvoked > 1)
-                    .Repeat(r => r.For(Transports.Default))
-                    .Should(c => Assert.AreEqual(1, c.NumberOfTimesInvoked, "No retries should be in use if transactions are off"))
-                    .Run();
+                        Id = c.Id
+                    });
+                    await bus.SendLocalAsync(new MessageToBeRetried
+                    {
+                        Id = c.Id,
+                        SecondMessage = true
+                    });
+                }))
+                .AllowSimulatedExceptions()
+                .Done(c => c.SecondMessageReceived || c.NumberOfTimesInvoked > 1)
+                .Run();
 
+            Assert.AreEqual(1, context.NumberOfTimesInvoked, "No retries should be in use if transactions are off");
         }
 
         public class Context : ScenarioContext
@@ -39,7 +44,7 @@
         {
             public RetryEndpoint()
             {
-                EndpointSetup<DefaultServer>(b => b.Transactions().Disable());
+                EndpointSetup<DefaultServer>(b => { b.Transactions().Disable(); });
             }
 
             class MessageToBeRetriedHandler : IHandleMessages<MessageToBeRetried>
@@ -49,7 +54,9 @@
                 public Task Handle(MessageToBeRetried message)
                 {
                     if (message.Id != Context.Id)
+                    {
                         return Task.FromResult(0); // messages from previous test runs must be ignored
+                    }
 
                     if (message.SecondMessage)
                     {
@@ -72,6 +79,4 @@
             public bool SecondMessage { get; set; }
         }
     }
-
-
 }

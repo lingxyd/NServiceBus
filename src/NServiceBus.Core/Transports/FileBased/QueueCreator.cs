@@ -2,12 +2,13 @@
 {
     using System.IO;
 
-    class QueueCreator:ICreateQueues
+    class QueueCreator : ICreateQueues
     {
         public void CreateQueueIfNecessary(string address, string account)
         {
-            Directory.CreateDirectory(address);
-            Directory.CreateDirectory(Path.Combine(address,".committed"));
+            var fullPath = Path.Combine("c:\\bus", address);
+            Directory.CreateDirectory(fullPath);
+            Directory.CreateDirectory(Path.Combine(fullPath, ".committed"));
         }
     }
 }

@@ -4,7 +4,6 @@ using NServiceBus.ConsistencyGuarantees;
 
 namespace NServiceBus
 {
-    using System.IO;
     using Settings;
     using Transports;
     using Transports.FileBased;
@@ -68,7 +67,7 @@ namespace NServiceBus
         /// <returns>The transport address.</returns>
         public override string ToTransportAddress(LogicalAddress logicalAddress)
         {
-            return Path.Combine("c:\\bus", logicalAddress.EndpointInstanceName.EndpointName.ToString());
+            return logicalAddress.EndpointInstanceName.EndpointName.ToString();
         }
 
         /// <summary>
