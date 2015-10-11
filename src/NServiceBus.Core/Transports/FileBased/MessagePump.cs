@@ -8,11 +8,13 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Logging;
-    using Extensibility;
+    using NServiceBus.Extensibility;
+    using NServiceBus.Logging;
 
     class MessagePump : IPushMessages
     {
+        static ILog Logger = LogManager.GetLogger<MessagePump>();
+
         public void Init(Func<PushContext, Task> pipe, PushSettings settings)
         {
             pipeline = pipe;
@@ -44,7 +46,10 @@
 
             // ReSharper disable once MethodSupportsCancellation
             var timeoutTask = Task.Delay(TimeSpan.FromSeconds(30));
-            var allTasks = runningReceiveTasks.Values.Concat(new[] { messagePumpTask });
+            var allTasks = runningReceiveTasks.Values.Concat(new[]
+            {
+                messagePumpTask
+            });
             var finishedTask = await Task.WhenAny(Task.WhenAll(allTasks), timeoutTask).ConfigureAwait(false);
 
             if (finishedTask.Equals(timeoutTask))
@@ -103,7 +108,7 @@
                         {
                             await ProcessFile(transaction, messageId);
 
-                            transaction.Dipatch();
+                            transaction.Complete();
                         }
                         finally
                         {
@@ -116,7 +121,7 @@
                         Task toBeRemoved;
                         runningReceiveTasks.TryRemove(t, out toBeRemoved);
                     }, TaskContinuationOptions.ExecuteSynchronously)
-                    .Ignore();
+                        .Ignore();
 
                     runningReceiveTasks.AddOrUpdate(task, task, (k, v) => task)
                         .Ignore();
@@ -127,7 +132,6 @@
                     await Task.Delay(10, cancellationToken);
                 }
             }
-
         }
 
         async Task ProcessFile(DirectoryBasedTransaction transaction, string messageId)
@@ -158,26 +162,23 @@
         Dictionary<string, string> DeserializeHeaders(string[] headerLines)
         {
             var headers = new Dictionary<string, string>();
-            for (var i = 0; i < headerLines.Count() / 2; i++)
+            for (var i = 0; i < headerLines.Count()/2; i++)
             {
-                var index = i * 2;
+                var index = i*2;
                 headers.Add(headerLines[index], headerLines[index + 1]);
-
             }
             return headers;
         }
 
-        string path;
-        bool purgeOnStartup;
+        CancellationToken cancellationToken;
+        CancellationTokenSource cancellationTokenSource;
+        SemaphoreSlim concurrencyLimiter;
 
         Task messagePumpTask;
-        ConcurrentDictionary<Task, Task> runningReceiveTasks;
-        SemaphoreSlim concurrencyLimiter;
-        CancellationTokenSource cancellationTokenSource;
-        CancellationToken cancellationToken;
+
+        string path;
         Func<PushContext, Task> pipeline;
-
-        static ILog Logger = LogManager.GetLogger<MessagePump>();
-
+        bool purgeOnStartup;
+        ConcurrentDictionary<Task, Task> runningReceiveTasks;
     }
 }

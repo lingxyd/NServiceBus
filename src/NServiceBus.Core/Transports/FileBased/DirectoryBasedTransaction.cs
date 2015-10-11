@@ -16,13 +16,13 @@ namespace NServiceBus.Transports.FileBased
             commitDir = Path.Combine(basePath, ".committed", transactionId);
         }
 
-        public string FileToProcess => fileToProcess;
+        public string FileToProcess { get; set; }
 
         public void BeginTransaction(string incomingFilePath)
         {
             Directory.CreateDirectory(transactionDir);
-            fileToProcess = Path.Combine(transactionDir, Path.GetFileName(incomingFilePath));
-            File.Move(incomingFilePath, fileToProcess);
+            FileToProcess = Path.Combine(transactionDir, Path.GetFileName(incomingFilePath));
+            File.Move(incomingFilePath, FileToProcess);
         }
 
         public void Commit()
@@ -30,14 +30,15 @@ namespace NServiceBus.Transports.FileBased
             var dispatchFile = Path.Combine(transactionDir, "dispatch.txt");
             File.WriteAllLines(dispatchFile, outgoingFiles.Select(file => $"{file.TxPath}=>{file.TargetPath}").ToArray());
 
-             Directory.Move(transactionDir, commitDir);
+            Directory.Move(transactionDir, commitDir);
+            committed = true;
         }
 
 
         public void Rollback()
         {
             //rollback by moving the file back to the main dir
-            File.Move(fileToProcess, basePath);
+            File.Move(FileToProcess, Path.Combine(basePath, Path.GetFileName(FileToProcess)));
             Directory.Delete(transactionDir, true);
         }
 
@@ -52,8 +53,13 @@ namespace NServiceBus.Transports.FileBased
         }
 
 
-        public void Dipatch()
+        public void Complete()
         {
+            if (!committed)
+            {
+                return;
+            }
+
             foreach (var outgoingFile in outgoingFiles)
             {
                 File.Move(outgoingFile.TxPath, outgoingFile.TargetPath);
@@ -62,25 +68,24 @@ namespace NServiceBus.Transports.FileBased
             Directory.Delete(commitDir, true);
         }
 
-        List<OutgoingFile> outgoingFiles = new List<OutgoingFile>();
         string basePath;
-        string fileToProcess;
-        string transactionDir;
         string commitDir;
+
+        bool committed;
+
+        List<OutgoingFile> outgoingFiles = new List<OutgoingFile>();
+        string transactionDir;
 
         class OutgoingFile
         {
-            public string TxPath { get; private set; }
-            public string TargetPath { get; private set; }
-
             public OutgoingFile(string txPath, string targetPath)
             {
                 TxPath = txPath;
                 TargetPath = targetPath;
             }
+
+            public string TxPath { get; private set; }
+            public string TargetPath { get; private set; }
         }
-
     }
-
-
 }
