@@ -37,7 +37,8 @@ namespace NServiceBus.Transports.FileBased
 
                 var messagePath = basePath + ".txt";
 
-                if (context.TryGet(out transaction))
+                if (transportOperation.DispatchOptions.RequiredDispatchConsistency != DispatchConsistency.Isolated &&
+                    context.TryGet(out transaction))
                 {
                     //store the original destination
                     messageContents.Add(messagePath);
