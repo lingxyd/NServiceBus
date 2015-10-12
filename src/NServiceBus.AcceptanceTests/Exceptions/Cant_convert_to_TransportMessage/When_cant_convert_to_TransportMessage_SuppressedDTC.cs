@@ -4,6 +4,7 @@
     using System.Linq;
     using NServiceBus.AcceptanceTesting;
     using NServiceBus.AcceptanceTests.EndpointTemplates;
+    using NServiceBus.Timeout.Core;
     using NUnit.Framework;
 
     public class When_cant_convert_to_TransportMessage_SuppressedDTC : NServiceBusAcceptanceTest
@@ -12,8 +13,12 @@
         public void Should_send_message_to_error_queue()
         {
             Scenario.Define<Context>()
-                    .WithEndpoint<Sender>(b => b.Given(bus => bus.Send(new Message())))
-                    .WithEndpoint<Receiver>()
+                    .WithEndpoint<Sender>(b =>
+                    {
+                        b.Given(bus => bus.Send(new Message()));
+                    })
+                    .WithEndpoint<Receiver>(c =>
+                        c.CustomConfig(configure => configure.SuppressOutdatedTimeoutDispatchWarning()))
                     .Done(c => c.GetAllLogs().Any(l => l.Level == "error"))
                     .Repeat(r => r.For(ScenarioDescriptors.Transports.Msmq))
                     .Should(c =>
@@ -33,7 +38,7 @@
             public Sender()
             {
                 Configure.Transactions.Advanced(settings => settings.DisableDistributedTransactions());
-                EndpointSetup<DefaultServer>()
+                EndpointSetup<DefaultServer>(c=> c.SuppressOutdatedTimeoutDispatchWarning())
                     .AddMapping<Message>(typeof(Receiver));
             }
         }
@@ -44,7 +49,7 @@
             {
                 SerializerCorrupter.Corrupt();
                 Configure.Transactions.Advanced(settings => settings.DisableDistributedTransactions());
-                EndpointSetup<DefaultServer>()
+                EndpointSetup<DefaultServer>(c => c.SuppressOutdatedTimeoutDispatchWarning())
                     .AllowExceptions();
             }
         }
