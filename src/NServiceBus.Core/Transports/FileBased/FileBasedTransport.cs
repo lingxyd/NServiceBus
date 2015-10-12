@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using NServiceBus.ConsistencyGuarantees;
-
-namespace NServiceBus
+﻿namespace NServiceBus
 {
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
     using Settings;
     using Transports;
     using Transports.FileBased;
@@ -13,12 +12,6 @@ namespace NServiceBus
     /// </summary>
     public class FileBasedTransport : TransportDefinition
     {
-        internal FileBasedTransport()
-        {
-            HasSupportForMultiQueueNativeTransactions = true;
-            HasSupportForDistributedTransactions = false;
-        }
-
         /// <summary>
         /// Gives implementations access to the <see cref="BusConfiguration"/> instance at configuration time.
         /// </summary>
@@ -27,13 +20,6 @@ namespace NServiceBus
             config.EnableFeature<FileBasedTransportConfigurator>();
         }
 
-        /// <summary>
-        /// Returns the consistency guarantee to use if no specific guarantee is specified.
-        /// </summary>
-        public override ConsistencyGuarantee GetDefaultConsistencyGuarantee()
-        {
-            return ConsistencyGuarantee.AtLeastOnce;
-        }
 
         /// <summary>
         /// Returns the discriminator for this endpoint instance.
@@ -42,6 +28,11 @@ namespace NServiceBus
         {
             return "\\";
         }
+
+        /// <summary>
+        /// Gets the supported transactionallity for this transport.
+        /// </summary>
+        public override TransactionSupport GetTransactionSupport() => TransactionSupport.MultiQueue;
 
         /// <summary>
         /// Will be called if the transport has indicated that it has native support for pub sub.
@@ -67,7 +58,7 @@ namespace NServiceBus
         /// <returns>The transport address.</returns>
         public override string ToTransportAddress(LogicalAddress logicalAddress)
         {
-            return logicalAddress.EndpointInstanceName.EndpointName.ToString();
+            return Path.Combine(logicalAddress.EndpointInstanceName.EndpointName.ToString(), logicalAddress.Qualifier ?? "");
         }
 
         /// <summary>

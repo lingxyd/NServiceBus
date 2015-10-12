@@ -320,12 +320,13 @@ namespace NServiceBus
     }
     public class FileBasedTransport : NServiceBus.Transports.TransportDefinition
     {
+        public FileBasedTransport() { }
         protected internal override void Configure(NServiceBus.BusConfiguration config) { }
-        public override NServiceBus.ConsistencyGuarantees.ConsistencyGuarantee GetDefaultConsistencyGuarantee() { }
         public override string GetDiscriminatorForThisEndpointInstance() { }
         public override NServiceBus.Transports.OutboundRoutingPolicy GetOutboundRoutingPolicy(NServiceBus.Settings.ReadOnlySettings settings) { }
         public override NServiceBus.Transports.IManageSubscriptions GetSubscriptionManager() { }
         public override System.Collections.Generic.IEnumerable<System.Type> GetSupportedDeliveryConstraints() { }
+        public override NServiceBus.Transports.TransactionSupport GetTransactionSupport() { }
         public override string ToTransportAddress(NServiceBus.LogicalAddress logicalAddress) { }
     }
     public class FileRoutingTableSettings : NServiceBus.Configuration.AdvanceExtensibility.ExposeSettings

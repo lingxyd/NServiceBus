@@ -13,16 +13,16 @@
         public async Task Message_should_be_received()
         {
             var context = await Scenario.Define<Context>()
-                    .WithEndpoint<Endpoint>(b => b.When((bus, c) =>
-                    {
-                        var options = new SendOptions();
+                .WithEndpoint<Endpoint>(b => b.When((bus, c) =>
+                {
+                    var options = new SendOptions();
 
-                        options.DelayDeliveryWith(TimeSpan.FromSeconds(3));
-                        return bus.SendAsync(new MyMessage(), options);
-                    }))
-                    .WithEndpoint<Receiver>()
-                    .Done(c => c.WasCalled)
-                    .Run();
+                    options.DelayDeliveryWith(TimeSpan.FromSeconds(3));
+                    return bus.SendAsync(new MyMessage(), options);
+                }))
+                .WithEndpoint<Receiver>()
+                .Done(c => c.WasCalled)
+                .Run();
 
             Assert.IsTrue(context.WasCalled);
         }
@@ -47,6 +47,7 @@
             {
                 EndpointSetup<DefaultServer>();
             }
+
             public class MyMessageHandler : IHandleMessages<MyMessage>
             {
                 public Context Context { get; set; }
