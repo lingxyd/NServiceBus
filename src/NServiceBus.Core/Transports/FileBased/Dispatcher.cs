@@ -23,7 +23,12 @@ namespace NServiceBus.Transports.FileBased
 
                 var basePath = Path.Combine("c:\\bus", addressTag.Destination);
                 var bodyPath = Path.Combine(basePath, "bodies", transportOperation.Message.MessageId) + ".xml"; //TODO: pick the correct ending based on the serialized type
-                File.WriteAllBytes(bodyPath, transportOperation.Message.Body);
+
+                //todo: this is needed since handleCurrentMessageLater does a send local with the same msg id
+                if (!File.Exists(bodyPath))
+                {
+                    File.WriteAllBytes(bodyPath, transportOperation.Message.Body);
+                }
 
                 var messageContents = new List<string>
                 {
