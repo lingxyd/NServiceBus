@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using NServiceBus.Performance.TimeToBeReceived;
     using Settings;
     using Transports;
     using Transports.FileBased;
@@ -48,7 +49,7 @@
         /// </summary>
         public override IEnumerable<Type> GetSupportedDeliveryConstraints()
         {
-            return new List<Type>();
+            return new List<Type> { typeof(DiscardIfNotReceivedBefore) };
         }
 
         /// <summary>

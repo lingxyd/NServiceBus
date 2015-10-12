@@ -142,6 +142,17 @@
                 var bodyPath = message.First();
                 var headers = DeserializeHeaders(message.Skip(1).ToArray());
 
+                string ttbr;
+
+                if (headers.TryGetValue(Headers.TimeToBeReceived, out ttbr))
+                {
+                    if (DateTimeExtensions.ToUtcDateTime(ttbr) < DateTime.UtcNow)
+                    {
+                        transaction.Commit();
+                        return;
+                    }
+                }
+
                 using (var bodyStream = new FileStream(bodyPath, FileMode.Open))
                 {
                     var context = new ContextBag();
@@ -162,9 +173,9 @@
         Dictionary<string, string> DeserializeHeaders(string[] headerLines)
         {
             var headers = new Dictionary<string, string>();
-            for (var i = 0; i < headerLines.Count()/2; i++)
+            for (var i = 0; i < headerLines.Count() / 2; i++)
             {
-                var index = i*2;
+                var index = i * 2;
                 headers.Add(headerLines[index], headerLines[index + 1]);
             }
             return headers;
