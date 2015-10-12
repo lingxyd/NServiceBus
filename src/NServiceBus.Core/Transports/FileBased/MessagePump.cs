@@ -90,7 +90,7 @@
             {
                 var filesFound = false;
 
-                foreach (var filePath in Directory.EnumerateFiles(path, "*.txt"))
+                foreach (var filePath in Directory.EnumerateFiles(path, "*.*"))
                 {
                     filesFound = true;
 
