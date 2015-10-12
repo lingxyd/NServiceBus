@@ -9,7 +9,7 @@
             var fullPath = Path.Combine("c:\\bus", address);
             Directory.CreateDirectory(fullPath);
             Directory.CreateDirectory(Path.Combine(fullPath, ".committed"));
-            Directory.CreateDirectory(Path.Combine(fullPath, "bodies"));
+            Directory.CreateDirectory(Path.Combine(fullPath, ".bodies"));
         }
     }
 }
